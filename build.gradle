@@ -1,0 +1,37 @@
+buildscript {
+	repositories {
+		mavenCentral()
+	}
+}
+
+plugins {
+	id 'org.jetbrains.kotlin.jvm' version '1.5.10'
+	id 'groovy'
+	id 'com.vanniktech.maven.publish' version '0.17.0'
+}
+
+// BUILD CONFIG
+repositories {
+	google()
+	mavenCentral()
+}
+
+dependencies {
+	compile localGroovy()
+	compile gradleApi()
+	compile 'com.android.tools.build:gradle:4.2.2'
+	compile 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.10'
+}
+
+compileKotlin {
+	kotlinOptions.jvmTarget = '1.8'
+}
+
+group = GROUP
+version = VERSION_NAME
+
+// MAVEN PUBLISHING
+
+mavenPublish {
+	sonatypeHost = "S01"
+}
