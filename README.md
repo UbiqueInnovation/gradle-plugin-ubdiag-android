@@ -3,7 +3,7 @@
 For seamless interplay between apps and the Ubique build management tools.
 
 [![Build](https://github.com/UbiqueInnovation/gradle-plugin-ubdiag-android/actions/workflows/build.yml/badge.svg)](https://github.com/UbiqueInnovation/gradle-plugin-ubdiag-android/actions/workflows/build.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/ch.ubique.gradle/ubdiag-android.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22ch.admin.bag.covidcertificate%22%20AND%20a:%22sdk-core%22)
+[![Maven Central](https://img.shields.io/maven-central/v/ch.ubique.gradle/ubdiag-android.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22ch.ubique.gradle%22%20AND%20a:%22ubdiag-android%22)
 
 ## Features
 
