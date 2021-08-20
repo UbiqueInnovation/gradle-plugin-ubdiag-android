@@ -17,10 +17,10 @@ repositories {
 }
 
 dependencies {
-	compile localGroovy()
-	compile gradleApi()
-	compile 'com.android.tools.build:gradle:4.2.2'
-	compile 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.10'
+	implementation localGroovy()
+	implementation gradleApi()
+	implementation 'com.android.tools.build:gradle:7.0.1'
+	implementation 'org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.10'
 }
 
 compileKotlin {
