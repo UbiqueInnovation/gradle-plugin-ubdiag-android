@@ -7,6 +7,16 @@ For seamless interplay between apps and the Ubique build management tools.
 
 ## Features
 
+### Build properties
+
+The following build properties can be specified using the `-P` arguments:
+
+    buildid         - used for "ub_buildid" meta data, a unique string to identify the build, defaults to "localbuild"
+    buildnumber     - used for "ub_buildnumber" meta data, an incremental build number (per branch), defaults to "0"
+    branch          - Git branch used for "ub_branch", defaults to the currently checked out branch, or "develop" if no Git
+    buildDir        - custom build directory path, optional
+    webicon         - web icon file to be generated and labelled, optional
+
 ### AndroidManifest.xml `<meta-data>` properties
 
 The following `<meta-data>` properties are injected into the AndroidManifest.xml:
@@ -18,29 +28,23 @@ The following `<meta-data>` properties are injected into the AndroidManifest.xml
 
 ### Launcher icon label
 
-The build tool can draw a label banner onto the launcher icon (as per the manifest). By default the flavor's name is used for the label. The label for the 'prod' flavor is set to an empty string, i.e. it does not have a label.
+The build tool can draw a label banner onto the launcher icon (as per the manifest). By default the flavor's name is used for the label. Any flavor having a name starting with 'prod' will not be labelled.
 
-A custom label can be set with the `launcherIconLabel` property within a Gradle flavor:
+To explicitly enable or disable the labelling, set `launcherIconLabelEnabled` in the `defaultConfig` or a specific flavor.
+
+    myflavor {
+        launcherIconLabelEnabled = false
+    }
+
+A custom label can be set with the `launcherIconLabel` property within a flavor:
 
     myflavor {
         launcherIconLabel = "foobar"
     }
 
-To disable the label banner, set it to an empty string:
+If a `webicon` file is provided via Gradle property, the 'web icon' (usually a PNG file in the app module directory) also gets a banner applied, or generated from the app's launcher icon if it does not exist.
 
-    otherflavor {
-        launcherIconLabel = ""
-    }
-
-If a `webicon` file name is provided via a custom Gradle property, the 'web icon' (PNG file in the app module directory) also gets a banner applied (only relevant for Shankar).
-
-This feature requires the [ImageMagick command line tools](https://imagemagick.org/script/download.php) to be installed on the app's build system.
-
-### Other configurations
-
-Custom build directory, if set by a Gradle property (`-PbuildDir=foo`):
-
-    project.buildDir = project.property("buildDir")
+> :grey_exclamation: This feature requires the [ImageMagick command line tools](https://imagemagick.org/script/download.php) to be installed on the app's build system.
 
 ## Usage
 
@@ -52,30 +56,19 @@ To apply the Gradle build plugin, you have to add it as a project dependency in 
             ...
         }
         dependencies {
-            classpath 'com.android.tools.build:gradle:4.2.2'   // Android build plugin
-            classpath 'ch.ubique.gradle:ubdiag-android:4.2.0'  // Ubique build plugin
+            classpath 'com.android.tools.build:gradle:7.0.1'   // Android build plugin
+            classpath 'ch.ubique.gradle:ubdiag-android:7.0.1'  // UbDiag build plugin
         }
     }
 
 Then apply the plugin in the app's module build.gradle:
 
     apply plugin: 'com.android.application'  // standard Android app build plugin first
-    apply plugin: 'kotlin-android'           // Kotlin plugin (if needed)
-    apply plugin: 'ch.ubique.gradle.ubdiag'  // apply Ubique build plugin last
+    apply plugin: 'ch.ubique.gradle.ubdiag'  // apply UbDiag build plugin after
     
     android {
         ...
     }
-
-### Build variables
-
-The following build properties can be specified using the `-P` arguments:
-
-    buildid         - used for "ub_buildid" meta data, a unique string to identify the build, defaults to "localbuild"
-    buildnumber     - used for "ub_buildnumber" meta data, an incremental build number (per branch), defaults to "0"
-    branch          - Git branch used for "ub_branch", defaults to the currently checked out branch, or "develop" if no Git
-    buildDir        - custom build directory path, optional
-    webicon         - web icon file to be generated and labelled, optional
 
 ## Development & Testing
 

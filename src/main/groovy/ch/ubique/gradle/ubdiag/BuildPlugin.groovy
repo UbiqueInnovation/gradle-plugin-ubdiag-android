@@ -41,18 +41,13 @@ class BuildPlugin implements Plugin<Project> {
 		// BuildConfig fields
 		android.defaultConfig { ProductFlavor flavor ->
 			flavor.ext.set("launcherIconLabel", "")
+			flavor.ext.set("launcherIconLabelEnabled", (Boolean) null)
 		}
 
 		android.productFlavors.whenObjectAdded { ProductFlavor flavor ->
 			// Add the property 'launcherIconLabel' to each product flavor and set the default value to its name
 			flavor.ext.set("launcherIconLabel", flavor.name)
-		}
-
-		// primary flavors
-		android.productFlavors {
-			prod { ProductFlavor flavor ->
-				flavor.launcherIconLabel = ""
-			}
+			flavor.ext.set("launcherIconLabelEnabled", (Boolean) null)
 		}
 
 		project.afterEvaluate {

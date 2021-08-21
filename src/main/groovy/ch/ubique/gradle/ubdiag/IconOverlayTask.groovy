@@ -5,6 +5,7 @@ import com.android.build.api.dsl.AndroidSourceSet
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.ApplicationVariant
+import com.android.builder.model.ProductFlavor
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.gradle.api.Project
@@ -34,9 +35,21 @@ class IconOverlayTask {
 			}
 
 			// get banner label
-			String bannerLabel = variant.flavorName
-			if (variant.productFlavors[0].ext.has("launcherIconLabel")) {
-				bannerLabel = variant.productFlavors.get(0).ext.launcherIconLabel
+			ProductFlavor flavor = variant.productFlavors[0]
+			Boolean defaultLabelEnabled = android.defaultConfig.launcherIconLabelEnabled
+			Boolean flavorLabelEnabled = flavor.launcherIconLabelEnabled
+			String bannerLabel
+			if (flavorLabelEnabled
+					|| flavorLabelEnabled == null && defaultLabelEnabled
+					|| flavorLabelEnabled == null && defaultLabelEnabled == null && !flavor.name.startsWith("prod")
+			) {
+				if (flavor.launcherIconLabel != null) {
+					bannerLabel = flavor.launcherIconLabel
+				} else {
+					bannerLabel = variant.flavorName
+				}
+			} else {
+				bannerLabel = null
 			}
 
 			File manifestFile = ManifestUtils.getMergedManifestFile(project, variant)
