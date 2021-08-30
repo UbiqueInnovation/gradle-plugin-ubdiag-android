@@ -11,9 +11,9 @@ class IconUtils {
 	 * Icon name to search for in the app drawable folders
 	 * if none can be found in the app manifest
 	 */
-	static final String DEFAULT_ICON_NAME = "ic_launcher";
+	private static final String DEFAULT_ICON_NAME = "ic_launcher"
 
-	static String imageMagikCmd = getImageMagickCmd()
+	private static Integer imageMagickVersion = null
 
 	/**
 	 * Retrieve the app icon from the application manifest
@@ -23,7 +23,7 @@ class IconUtils {
 	 */
 	static String getIconName(File manifestFile) {
 		if (manifestFile == null || manifestFile.isDirectory() || !manifestFile.exists()) {
-			return null;
+			return null
 		}
 
 		def manifestXml = new XmlSlurper().parse(manifestFile)
@@ -61,86 +61,96 @@ class IconUtils {
 	 * @param lines The lines of text to be displayed
 	 */
 	static void doStuff(File iconFile, String bannerLabel) {
-		if (getImageMagickCmd() == null) {
+		if (getImageMagickVersion() <= 0) {
 			// ImageMagik not available
 			System.err.println("LauncherIconLabelTask: Skipped launcher icon labelling because ImageMagick was not found on this system.")
 			return
 		}
 
-		String iconFilePath = iconFile.absolutePath;
+		String iconFilePath = iconFile.absolutePath
 
-		File target = new File(iconFilePath.replaceAll("\\.([^./]+)\$", ".tmp.\$1"));
+		File target = new File(iconFilePath.replaceAll("\\.([^./]+)\$", ".tmp.\$1"))
 
 		def adaptive = false
 		if (target.name.contains("_foreground")) {
 			adaptive = true
 		}
 
-		drawLabel(iconFile, target, bannerLabel, adaptive);
+		drawLabel(iconFile, target, bannerLabel, adaptive)
 
-		iconFile.delete();
-		target.renameTo(iconFile);
+		iconFile.delete()
+		target.renameTo(iconFile)
 	}
 
 	static void drawLabel(File sourceFile, File targetFile, String label, boolean adaptiveIcon = false) {
-		String magickCmd = getImageMagickCmd();
-		if (magickCmd == null) {
+		int magickVersion = getImageMagickVersion()
+		if (magickVersion <= 0) {
 			// ImageMagik not available
 			System.err.println("LauncherIconLabelTask: Skipped launcher icon labelling because ImageMagick was not found on this system.")
 			return
 		}
 
-		BufferedImage img = ImageIO.read(sourceFile);
-		def width = img.getWidth();
+		BufferedImage img = ImageIO.read(sourceFile)
+		def width = img.getWidth()
 
-		String bannerFileName = adaptiveIcon ? "/banner_adaptive.png" : "/banner.png";
+		String bannerFileName = adaptiveIcon ? "/banner_adaptive.png" : "/banner.png"
 
 		// targetFile is our .tmp.-file which has the banner
-		targetFile.delete();
-		targetFile.withOutputStream { out -> out << getClass().getResourceAsStream(bannerFileName) };
+		targetFile.delete()
+		targetFile.withOutputStream { out -> out << getClass().getResourceAsStream(bannerFileName) }
 
-		String[] cmd;
 		int labelFontSize = (int) (110 * Math.min(1f, 1f / label.length() * 3.5f))
-		String drawCall = "gravity center translate -256,-256 font-size " + labelFontSize + " fill #273c56 rotate -45 text 0,475 '" + label.toUpperCase() + "'";
-		cmd = [magickCmd, targetFile.absolutePath, "-draw", drawCall, targetFile.absolutePath];
-		println(cmd.join(" "));
-		cmd.execute().waitForProcessOutput((OutputStream) System.out, System.err);
-		cmd = [magickCmd, targetFile.absolutePath, "-resize", width + "x" + width, targetFile.absolutePath];
-		println(cmd.join(" "));
-		cmd.execute().waitForProcessOutput((OutputStream) System.out, System.err);
-		cmd = [magickCmd, "composite", targetFile.absolutePath, sourceFile.absolutePath, "-compose", adaptiveIcon ? "Over" : "Src_In", targetFile.absolutePath];
-		println(cmd.join(" "));
-		cmd.execute().waitForProcessOutput((OutputStream) System.out, System.err);
-		cmd = [magickCmd, "-page", "+0+0", sourceFile.absolutePath, "-page", "+0+0", targetFile.absolutePath, "-background", "transparent", "-layers", "flatten", targetFile.absolutePath];
-		println(cmd.join(" "));
-		cmd.execute().waitForProcessOutput((OutputStream) System.out, System.err);
+		String drawSpec = "gravity center translate -256,-256 font-size " + labelFontSize + " fill #273c56 rotate -45 text 0,475 '" + label.toUpperCase() + "'"
+
+		switch (magickVersion) {
+			case 7: {
+				execCmd("magick", targetFile.absolutePath, "-draw", drawSpec, targetFile.absolutePath)
+				execCmd("magick", targetFile.absolutePath, "-resize", width + "x" + width, targetFile.absolutePath)
+				execCmd("magick", "composite", targetFile.absolutePath, sourceFile.absolutePath, "-compose", adaptiveIcon ? "Over" : "Src_In", targetFile.absolutePath)
+				execCmd("magick", "-page", "+0+0", sourceFile.absolutePath, "-page", "+0+0", targetFile.absolutePath, "-background", "transparent", "-layers", "flatten", targetFile.absolutePath)
+				break
+			}
+			case 6: {
+				execCmd("convert", targetFile.absolutePath, "-draw", drawSpec, targetFile.absolutePath)
+				execCmd("convert", targetFile.absolutePath, "-resize", width + "x" + width, targetFile.absolutePath)
+				execCmd("composite", targetFile.absolutePath, sourceFile.absolutePath, "-compose", adaptiveIcon ? "Over" : "Src_In", targetFile.absolutePath)
+				execCmd("convert", "-page", "+0+0", sourceFile.absolutePath, "-page", "+0+0", targetFile.absolutePath, "-background", "transparent", "-layers", "flatten", targetFile.absolutePath)
+				break
+			}
+			default: {
+				System.err.println("LauncherIconLabelTask: unknown ImageMagick version $magickVersion")
+			}
+		}
 	}
 
 	/**
 	 * Obtain a functional ImageMagik command for the running platform.
 	 * @return command name, or null if not available
 	 */
-	private static String getImageMagickCmd() {
-		if (imageMagikCmd == null) {
-			String[] magickCmds = ["magick"];
-			for (String cmd : magickCmds) {
-				try {
-					Runtime rt = Runtime.getRuntime();
-					Process proc = rt.exec("$cmd -version");
-					int exitValue = proc.waitFor();
-					if (exitValue == 0 || exitValue == 1) {
-						// command exists
-						return (imageMagikCmd = cmd)
-					}
-					// else try next command
-				}
-				catch (Exception ignored) {
-					// try next command
-					ignored.printStackTrace();
-				}
+	private static int getImageMagickVersion() {
+		if (imageMagickVersion != null) {
+			return imageMagickVersion
+		}
+
+		try {
+			int r = Runtime.getRuntime().exec("magick -version").waitFor()
+			if (r == 0 || r == 1) {
+				return (imageMagickVersion = 7)
 			}
 		}
-		return imageMagikCmd
+		catch (Exception ignored) {
+		}
+		try {
+			int r1 = Runtime.getRuntime().exec("convert -version").waitFor()
+			int r2 = Runtime.getRuntime().exec("composite -version").waitFor()
+			if ((r1 == 0 || r1 == 1) && (r2 == 0 || r2 == 1)) {
+				return (imageMagickVersion = 6)
+			}
+		}
+		catch (Exception ignored) {
+		}
+
+		return (imageMagickVersion = -1)
 	}
 
 	/**
@@ -162,5 +172,10 @@ class IconUtils {
 		}
 
 		return iconForWebIconFallback
+	}
+
+	private static void execCmd(String... cmd) {
+		println("LauncherIconLabelTask: " + cmd.collect { it.contains(" ") ? "\"$it\"" : it }.join(" "))
+		cmd.execute().waitForProcessOutput((OutputStream) System.out, System.err)
 	}
 }
