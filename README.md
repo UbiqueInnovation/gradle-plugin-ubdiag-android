@@ -57,7 +57,7 @@ To apply the Gradle build plugin, you have to add it as a project dependency in 
         }
         dependencies {
             classpath 'com.android.tools.build:gradle:7.0.1'   // Android build plugin
-            classpath 'ch.ubique.gradle:ubdiag-android:7.0.1'  // UbDiag build plugin
+            classpath 'ch.ubique.gradle:ubdiag-android:7.0.2'  // UbDiag build plugin
         }
     }
 
