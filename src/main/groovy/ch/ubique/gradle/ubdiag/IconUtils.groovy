@@ -43,7 +43,7 @@ class IconUtils {
 			if (resDir.exists()) {
 				List<File> result = new ArrayList<>()
 				resDir.eachDirMatch(~/^drawable.*|^mipmap.*/) { dir ->
-					dir.eachFileMatch(FileType.FILES, ~"^.*${iconName}(_foreground)?.png") { file ->
+					dir.eachFileMatch(FileType.FILES, ~"^.*${iconName}(_foreground)?.(png|webp)") { file ->
 						result.add(file)
 					}
 				}
