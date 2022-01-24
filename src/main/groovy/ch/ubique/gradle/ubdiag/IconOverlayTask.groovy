@@ -81,7 +81,7 @@ class IconOverlayTask {
 				File webIconSource = ((new File(moduleDir, "src/${variant.flavorName}").listFiles() ?: new File[0]) +
 						(new File(moduleDir, "src/main").listFiles() ?: new File[0]) +
 						(moduleDir.listFiles() ?: new File[0])).find {
-					it.name.matches(".*(web|playstore|512)\\.png")
+					it.name.matches(".*(web|playstore|512)\\.(png|webp)")
 				}
 
 				if (webIconSource == null) {
