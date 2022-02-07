@@ -44,8 +44,6 @@ A custom label can be set with the `launcherIconLabel` property within a flavor:
 
 If a `webicon` file is provided via Gradle property, the 'web icon' (usually a PNG file in the app module directory) also gets a banner applied, or generated from the app's launcher icon if it does not exist.
 
-> :grey_exclamation: This feature requires the [ImageMagick command line tools](https://imagemagick.org/script/download.php) to be installed on the app's build system.
-
 ## Usage
 
 To apply the Gradle build plugin, you have to add it as a project dependency in the top-level build.gradle:
