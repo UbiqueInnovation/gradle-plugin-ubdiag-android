@@ -76,9 +76,11 @@ class IconUtils {
 		BufferedImage img = ImageIO.read(sourceFile)
 		int sourceWidth = img.getWidth()
 		int sourceHeight = img.getHeight()
+		double dp = img.getWidth() / 108.0
 
 		GraphicsEnvironment.localGraphicsEnvironment.createGraphics(img).with { g ->
 			g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
+			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
 			// The banner center is anchored at 60% bottom right of the source image
 			int anchorX = (sourceWidth * 0.6).intValue()
@@ -92,11 +94,16 @@ class IconUtils {
 			int bannerHeight = (sourceHeight / 5).intValue()
 			Rectangle banner = new Rectangle(anchorX - sourceWidth, anchorY - (bannerHeight / 2).intValue(), sourceWidth * 2, bannerHeight)
 
-			// Draw banner border to distinguish it from the background
-			Rectangle shadow = new Rectangle(banner)
-			shadow.grow(1, 1)
-			g.setColor(Color.GRAY)
-			g.fill(shadow)
+			// Draw banner shadow to distinguish it from the background
+			Rectangle shadow1 = new Rectangle(banner)
+			shadow1.grow(0, (0.5 * dp).round().intValue())
+			g.setColor(new Color(0, 0, 0, 58))
+			g.fill(shadow1)
+
+			Rectangle shadow2 = new Rectangle(banner)
+			shadow2.setSize(shadow2.width.round().intValue(), (shadow2.height + 1 * dp).round().intValue())
+			g.setColor(new Color(0, 0, 0, 58))
+			g.fill(shadow2)
 
 			// Draw banner
 			g.setColor(Color.WHITE)
