@@ -1,6 +1,5 @@
 package ch.ubique.gradle.ubdiag
 
-import com.android.build.api.dsl.AndroidSourceDirectorySet
 import com.android.build.api.dsl.AndroidSourceSet
 import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
@@ -18,7 +17,9 @@ import java.nio.file.StandardCopyOption
 class IconOverlayTask {
 
 	static Task create(Project project, AppExtension android, ApplicationVariant variant, File targetWebIcon) {
+
 		String taskName = "overlayIcon${variant.name.capitalize()}"
+
 		return project.task(taskName).doFirst {
 			//empty generated icon res folder
 			File generatedResDir = new File("${project.buildDir}/generated/res/icon/")
@@ -68,6 +69,7 @@ class IconOverlayTask {
 					.findAll { it != null }
 					.collect { AndroidSourceSet ass -> ass.res.srcDirs }
 					.flatten()
+					.findAll { File file -> !file.path.contains("generated") }
 
 			println("$taskName: resource directories: " + resDirs)
 
@@ -107,14 +109,6 @@ class IconOverlayTask {
 				return
 			}
 
-			String buildType = variant.buildType.name
-			String highestPriorityResFolder = variant.flavorName + "/" + buildType
-
-			AndroidSourceSet sourceSet = android.sourceSets.maybeCreate("${variant.flavorName}${buildType.capitalize()}")
-			sourceSet.res { AndroidSourceDirectorySet res ->
-				res.srcDirs += new File("${project.buildDir}/generated/res/icon/${variant.flavorName}/$buildType/")
-			}
-
 			def updateTimestampJSON = false
 			List<String> touchedIcons = new ArrayList<>()
 
@@ -133,7 +127,7 @@ class IconOverlayTask {
 
 				println("$taskName: found modified icon: " + icon.absolutePath)
 
-				File copy = new File("${generatedResDir.toString()}/$highestPriorityResFolder/$typeName/${icon.name}")
+				File copy = new File("${generatedResDir.toString()}/${variant.flavorName}/$typeName/${icon.name}")
 				copy.parentFile.mkdirs()
 				Files.copy(icon.toPath(), copy.toPath(), StandardCopyOption.REPLACE_EXISTING)
 

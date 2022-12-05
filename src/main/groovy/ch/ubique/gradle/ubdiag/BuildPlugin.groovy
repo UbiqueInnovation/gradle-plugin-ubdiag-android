@@ -1,8 +1,8 @@
 package ch.ubique.gradle.ubdiag
 
+import com.android.build.api.dsl.AndroidSourceDirectorySet
+import com.android.build.api.dsl.AndroidSourceSet
 import com.android.build.gradle.AppExtension
-import com.android.build.gradle.api.ApplicationVariant
-import com.android.build.gradle.api.BaseVariantOutput
 import com.android.builder.model.ProductFlavor
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -48,12 +48,18 @@ class BuildPlugin implements Plugin<Project> {
 			// Add the property 'launcherIconLabel' to each product flavor and set the default value to its name
 			flavor.ext.set("launcherIconLabel", flavor.name)
 			flavor.ext.set("launcherIconLabelEnabled", (Boolean) null)
+
+			// Add generated icon path to res-SourceSet. This must be here otherwise it is too late!
+			AndroidSourceSet sourceSet = android.sourceSets.maybeCreate(flavor.name)
+			sourceSet.res { AndroidSourceDirectorySet res ->
+				res.srcDir("${project.buildDir}/generated/res/icon/${flavor.name}/")
+			}
 		}
 
 		project.afterEvaluate {
 			// setup manifest manipulation task
-			android.applicationVariants.all { ApplicationVariant variant ->
-				variant.outputs.each { BaseVariantOutput output ->
+			android.applicationVariants.all { variant ->
+				variant.outputs.each { output ->
 					output.processManifestProvider.get().doLast {
 						buildFlavor = variant.flavorName
 						File manifestFile = ManifestUtils.getMergedManifestFile(project, variant)
@@ -65,13 +71,17 @@ class BuildPlugin implements Plugin<Project> {
 			}
 
 			// launcher icon manipulation task
-			android.applicationVariants.all { ApplicationVariant variant ->
-				variant.outputs.each { BaseVariantOutput output ->
+			android.applicationVariants.all { variant ->
+				variant.outputs.each { output ->
 					def overlayIconTask = IconOverlayTask.create(project, android, variant, targetWebIcon)
 
 					/* hook overlayIconTask into android build chain */
+					def tasks = project.getTasks()
+					def targetName = variant.name.capitalize()
+					def targetTask = tasks.findByName("generate${targetName}Resources")
+
 					overlayIconTask.dependsOn output.processManifestProvider.get()
-					variant.mergeResourcesProvider.get().dependsOn overlayIconTask
+					targetTask.dependsOn(overlayIconTask)
 				}
 			}
 		}
