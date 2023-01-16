@@ -54,8 +54,8 @@ To apply the Gradle build plugin, you have to add it as a project dependency in 
             ...
         }
         dependencies {
-            classpath 'com.android.tools.build:gradle:7.1.0'   // Android build plugin
-            classpath 'ch.ubique.gradle:ubdiag-android:7.1.0'  // UbDiag build plugin
+            classpath 'com.android.tools.build:gradle:7.4.0'   // Android build plugin
+            classpath 'ch.ubique.gradle:ubdiag-android:7.4.0'  // UbDiag build plugin
         }
     }
 
@@ -72,7 +72,7 @@ Then apply the plugin in the app's module build.gradle:
 
 To test any changes locally, you can deploy a build to your local maven repository and include that from any application:
 
-1. Define a custom version by setting the `VERSION_NAME` variable in the `gradle.properties` file.
+1. Define a custom version by setting the mavenPublishing coordinates version in the `build.gradle` file.
 2. Deploy the plugin artifact by running `./gradlew publishToMavenLocal`
 3. Reference the local maven repository in your application's build script: 
 
@@ -90,7 +90,7 @@ To test any changes locally, you can deploy a build to your local maven reposito
 
 Each release on Github will be deployed to Maven Central.
 
-Use the `VERSION_NAME` as defined in the `gradle.properties` file as the release tag, prefixed with a `v`.
+Use the mavenPublishing coordinates version as defined in the `build.gradle` file as the release tag, prefixed with a `v`.
 
 * Group: `ch.ubique.gradle`
 * Artifact: `ubdiag-android`
