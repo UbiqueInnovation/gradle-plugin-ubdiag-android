@@ -66,13 +66,13 @@ class IconUtils {
 
 		File target = new File(iconFilePath.replaceAll("\\.([^./]+)\$", ".tmp.\$1"))
 
-		drawLabel(iconFile, target, bannerLabel)
+		drawLabel(iconFile, target, bannerLabel, true)
 
 		iconFile.delete()
 		target.renameTo(iconFile)
 	}
 
-	static void drawLabel(File sourceFile, File targetFile, String label) {
+	static void drawLabel(File sourceFile, File targetFile, String label, boolean adaptive) {
 		BufferedImage img = ImageIO.read(sourceFile)
 		int sourceWidth = img.getWidth()
 		int sourceHeight = img.getHeight()
@@ -82,26 +82,29 @@ class IconUtils {
 			g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON)
 			g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
 
+			float scale = adaptive ? 1.0 : 1.5
+
 			// The banner center is anchored at 60% bottom right of the source image
-			int anchorX = (sourceWidth * 0.6).intValue()
-			int anchorY = (sourceHeight * 0.6).intValue()
+			float anchorRel = adaptive ? 0.6 : 0.65
+			int anchorX = (sourceWidth * anchorRel).intValue()
+			int anchorY = (sourceHeight * anchorRel).intValue()
 
 			// Set the rotation to 45° around the anchor point
 			AffineTransform bannerTransform = new AffineTransform()
 			bannerTransform.rotate(Math.toRadians(-45), anchorX, anchorY)
 			g.setTransform(bannerTransform)
 
-			int bannerHeight = (sourceHeight / 5).intValue()
+			int bannerHeight = (scale * sourceHeight / 5).intValue()
 			Rectangle banner = new Rectangle(anchorX - sourceWidth, anchorY - (bannerHeight / 2).intValue(), sourceWidth * 2, bannerHeight)
 
 			// Draw banner shadow to distinguish it from the background
 			Rectangle shadow1 = new Rectangle(banner)
-			shadow1.grow(0, (0.5 * dp).round().intValue())
+			shadow1.grow(0, (scale * 0.5 * dp).round().intValue())
 			g.setColor(new Color(0, 0, 0, 58))
 			g.fill(shadow1)
 
 			Rectangle shadow2 = new Rectangle(banner)
-			shadow2.setSize(shadow2.width.round().intValue(), (shadow2.height + 1 * dp).round().intValue())
+			shadow2.setSize(shadow2.width.round().intValue(), (shadow2.height + scale * 1 * dp).round().intValue())
 			g.setColor(new Color(0, 0, 0, 58))
 			g.fill(shadow2)
 
@@ -110,7 +113,7 @@ class IconUtils {
 			g.fill(banner)
 
 			// Set font and calculate its size
-			int labelFontSize = (sourceHeight / 7).intValue()
+			int labelFontSize = (scale * sourceHeight / 7).intValue()
 			Font labelFont = new Font(Font.SANS_SERIF, Font.PLAIN, labelFontSize.intValue())
 			FontMetrics fontMetrics = g.getFontMetrics(labelFont)
 			int labelHeight = fontMetrics.ascent - fontMetrics.descent

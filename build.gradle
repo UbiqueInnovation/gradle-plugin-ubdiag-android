@@ -26,8 +26,7 @@ dependencies {
 // MAVEN PUBLISHING
 
 mavenPublishing {
-	coordinates("ch.ubique.gradle", "ubdiag-android", "7.4.0")
-
+	coordinates("ch.ubique.gradle", "ubdiag-android", "7.4.1")
 	publishToMavenCentral(SonatypeHost.S01, true)
 	signAllPublications()
 }
