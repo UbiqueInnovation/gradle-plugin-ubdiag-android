@@ -99,7 +99,7 @@ class IconOverlayTask {
 					Files.copy(webIconSource.toPath(), targetWebIcon.toPath())
 				} else {
 					println("$taskName: web icon: $webIconSource")
-					IconUtils.drawLabel(webIconSource, targetWebIcon, bannerLabel)
+					IconUtils.drawLabel(webIconSource, targetWebIcon, bannerLabel, false)
 				}
 			}
 
