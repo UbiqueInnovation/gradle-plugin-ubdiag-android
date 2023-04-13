@@ -44,7 +44,10 @@ class IconUtils {
 			if (resDir.exists()) {
 				List<File> result = new ArrayList<>()
 				resDir.eachDirMatch(~/^drawable.*|^mipmap.*/) { dir ->
-					dir.eachFileMatch(FileType.FILES, ~"^.*${iconName}(_foreground)?.(png|webp)") { file ->
+					dir.eachFileMatch(FileType.FILES, ~"^.*${iconName}.(png|webp)") { file ->
+						result.add(file)
+					}
+					dir.eachFileMatch(FileType.FILES, ~"^.*${iconName}_foreground.(png|webp|xml)") { file ->
 						result.add(file)
 					}
 				}
@@ -56,24 +59,63 @@ class IconUtils {
 	}
 
 	/**
-	 * Draws the given text over an image
+	 * Creates a layered drawable putting the label banner over the launcher icon.
 	 *
 	 * @param iconFile The image file which will be written too
-	 * @param lines The lines of text to be displayed
+	 * @param bannerLabel the label to draw
+	 * @adaptive treat the icon as an adaptive launcher icon
 	 */
-	static void doStuff(File iconFile, String bannerLabel) {
-		String iconFilePath = iconFile.absolutePath
+	static void createLayeredLabel(File iconFile, String bannerLabel, boolean adaptive) {
+		String iconName = iconFile.name.takeBefore(".")
+		String iconExt = iconFile.name.takeAfter(".")
+		String iconNameOverlay = iconName + "_overlay"
+		File iconOverlayFile = new File(iconFile.parentFile, iconNameOverlay + ".png")
+		iconOverlayFile.delete()
+		String iconNameOriginal = iconName + "_original"
+		File iconOriginalFile = new File(iconFile.parentFile, iconNameOriginal + "." + iconExt)
+		iconOriginalFile.delete()
 
-		File target = new File(iconFilePath.replaceAll("\\.([^./]+)\$", ".tmp.\$1"))
+		String typeName = iconFile.parentFile.name
+		String resType = typeName.startsWith("mipmap") ? "mipmap" : "drawable"
 
-		drawLabel(iconFile, target, bannerLabel, true)
+		// - create upper layer, transparent image with same size of iconFile
+		int sourceWidth, sourceHeight
+		if (iconExt.equalsIgnoreCase("xml")) {
+			sourceWidth = 512
+			sourceHeight = 512
+		} else {
+			BufferedImage img = ImageIO.read(iconFile)
+			sourceWidth = img.getWidth()
+			sourceHeight = img.getHeight()
+		}
+		BufferedImage overlayBitmap = createTransparentImage(sourceWidth, sourceHeight)
+		// - draw label to upper layer
+		drawLabelOnImage(overlayBitmap, bannerLabel, adaptive)
+		ImageIO.write(overlayBitmap, "png", iconOverlayFile)
 
-		iconFile.delete()
-		target.renameTo(iconFile)
+		// - move iconFile to iconFile-lower-layer
+		iconFile.renameTo(iconOriginalFile)
+		// - save $layerListXml into iconFile
+		File layerListFile = new File(iconFile.parentFile, iconName + ".xml")
+		String layerListXml = """\
+		<?xml version="1.0" encoding="utf-8"?>
+		<!-- GENERATED FILE - DO NOT EDIT -->
+		<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+			<item android:drawable="@${resType}/$iconNameOriginal" />
+			<item android:drawable="@${resType}/$iconNameOverlay" />
+		</layer-list>
+		""".stripIndent()
+		layerListFile.write(layerListXml)
 	}
 
 	static void drawLabel(File sourceFile, File targetFile, String label, boolean adaptive) {
 		BufferedImage img = ImageIO.read(sourceFile)
+		drawLabelOnImage(img, label, adaptive)
+		String fileExtension = sourceFile.name.substring(sourceFile.name.lastIndexOf('.') + 1)
+		ImageIO.write(img, fileExtension, targetFile)
+	}
+
+	private static void drawLabelOnImage(BufferedImage img, String label, boolean adaptive) {
 		int sourceWidth = img.getWidth()
 		int sourceHeight = img.getHeight()
 		double dp = img.getWidth() / 108.0
@@ -124,9 +166,16 @@ class IconUtils {
 			g.setColor(Color.decode("#273c56"))
 			g.drawString(label.toUpperCase(), anchorX - (labelWidth / 2), anchorY + (labelHeight / 2))
 		}
+	}
 
-		String fileExtension = sourceFile.name.substring(sourceFile.name.lastIndexOf('.') + 1)
-		ImageIO.write(img, fileExtension, targetFile)
+	private static BufferedImage createTransparentImage(int width, int height) {
+		BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
+		GraphicsEnvironment.localGraphicsEnvironment.createGraphics(img).with { g ->
+			g.setBackground(new Color(0, true))
+			g.clearRect(0, 0, width, height)
+			g.dispose()
+		}
+		return img
 	}
 
 	/**

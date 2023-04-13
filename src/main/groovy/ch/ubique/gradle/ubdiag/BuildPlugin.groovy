@@ -52,7 +52,7 @@ class BuildPlugin implements Plugin<Project> {
 			AndroidSourceSet sourceSet = android.sourceSets.maybeCreate(flavor.name)
 			sourceSet.res { AndroidSourceDirectorySet res ->
 				android.buildTypes.all { buildType ->
-					res.srcDir("${project.buildDir}/generated/res/icon/${flavor.name}/${buildType.name}/")
+					res.srcDir("${project.buildDir}/generated/res/launcher-icon/${flavor.name}/${buildType.name}/")
 				}
 			}
 		}
