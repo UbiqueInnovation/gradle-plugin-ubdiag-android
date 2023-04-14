@@ -127,7 +127,7 @@ class IconOverlayTask {
 
 				println("$taskName: found modified icon: " + icon.absolutePath)
 
-				File copy = new File("${generatedResDir.toString()}/${variant.flavorName}/$typeName/${icon.name}")
+				File copy = new File("${generatedResDir.toString()}/${variant.flavorName}/${variant.buildType.name}/$typeName/${icon.name}")
 				copy.parentFile.mkdirs()
 				Files.copy(icon.toPath(), copy.toPath(), StandardCopyOption.REPLACE_EXISTING)
 

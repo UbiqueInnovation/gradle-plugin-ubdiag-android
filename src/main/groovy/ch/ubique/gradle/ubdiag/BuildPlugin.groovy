@@ -22,7 +22,6 @@ class BuildPlugin implements Plugin<Project> {
 	private String buildBranch
 	private String buildFlavor
 
-
 	void apply(Project project) {
 		this.project = project
 
@@ -52,7 +51,9 @@ class BuildPlugin implements Plugin<Project> {
 			// Add generated icon path to res-SourceSet. This must be here otherwise it is too late!
 			AndroidSourceSet sourceSet = android.sourceSets.maybeCreate(flavor.name)
 			sourceSet.res { AndroidSourceDirectorySet res ->
-				res.srcDir("${project.buildDir}/generated/res/icon/${flavor.name}/")
+				android.buildTypes.all { buildType ->
+					res.srcDir("${project.buildDir}/generated/res/icon/${flavor.name}/${buildType.name}/")
+				}
 			}
 		}
 
