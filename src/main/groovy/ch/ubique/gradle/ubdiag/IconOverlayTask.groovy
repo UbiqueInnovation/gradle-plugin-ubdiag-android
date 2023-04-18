@@ -121,7 +121,8 @@ class IconOverlayTask {
 				Map savedObject = timestampMap.get(key)
 				if (savedObject != null) {
 					Long lastModified = (Long) savedObject.get("lastmodified")
-					if (icon.lastModified() == lastModified) return
+					String label = (String) savedObject.get("label")
+					if (icon.lastModified() == lastModified && label == bannerLabel) return
 					return
 				}
 
@@ -135,6 +136,7 @@ class IconOverlayTask {
 
 				savedObject = new LinkedHashMap<String, Object>()
 				savedObject.put("lastmodified", icon.lastModified())
+				savedObject.put("label", bannerLabel)
 				savedObject.put("path", copy.absolutePath)
 				timestampMap.put(key, savedObject)
 				updateTimestampJSON = true
