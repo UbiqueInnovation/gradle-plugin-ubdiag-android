@@ -5,6 +5,7 @@ import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.builder.model.ProductFlavor
+import groovy.io.FileType
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.gradle.api.Project
@@ -104,11 +105,13 @@ class IconOverlayTask {
 			}
 
 			allIcons.each { File original ->
-				String typeName = original.parentFile.name
-				File target = new File("${generatedResDir.toString()}/${variant.flavorName}/${variant.buildType.name}/$typeName/${original.name}")
-				// TODO: check not correct because $target might not have the same name anymore
-				if (target.exists() && original.lastModified() <= target.lastModified() && gradleLastModified <= target.lastModified()) return
+				String resTypeName = original.parentFile.name
+				String originalBaseName = original.name.takeBefore(".")
+				File targetDir = new File("${generatedResDir.toString()}/${variant.flavorName}/${variant.buildType.name}/$resTypeName")
+				File modified = targetDir.listFiles({ File file -> file.name.matches("${originalBaseName}\\.[^.]+") } as FileFilter)?.find() as File
+				if (modified != null && original.lastModified() <= modified.lastModified() && gradleLastModified <= modified.lastModified()) return
 				println("$taskName: found modified launcher icon: " + original.absolutePath)
+				File target = new File("${generatedResDir.toString()}/${variant.flavorName}/$resTypeName/${original.name}")
 				target.parentFile.mkdirs()
 				Files.copy(original.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
 				IconUtils.createLayeredLabel(target, bannerLabel, true)
