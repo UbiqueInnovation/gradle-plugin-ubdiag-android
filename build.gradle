@@ -8,7 +8,7 @@ buildscript {
 
 plugins {
 	id 'groovy'
-	id 'com.vanniktech.maven.publish' version '0.23.1'
+	id 'com.vanniktech.maven.publish' version '0.25.1'
 }
 
 // BUILD CONFIG
@@ -20,13 +20,13 @@ repositories {
 dependencies {
 	implementation localGroovy()
 	implementation gradleApi()
-	implementation 'com.android.tools.build:gradle:7.4.0'
+	implementation 'com.android.tools.build:gradle:8.0.0'
 }
 
 // MAVEN PUBLISHING
 
 mavenPublishing {
-	coordinates("ch.ubique.gradle", "ubdiag-android", "7.4.1")
+	coordinates("ch.ubique.gradle", "ubdiag-android", "8.0.0")
 	publishToMavenCentral(SonatypeHost.S01, true)
 	signAllPublications()
 }
