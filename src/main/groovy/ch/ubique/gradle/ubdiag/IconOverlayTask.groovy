@@ -114,7 +114,7 @@ class IconOverlayTask {
 				File target = new File(targetDir, original.name)
 				targetDir.mkdirs()
 				Files.copy(original.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
-				IconUtils.createLayeredLabel(target, bannerLabel, true)
+				IconUtils.createLayeredLabel(target, bannerLabel, originalBaseName.endsWith("_foreground"))
 			}
 		}
 	}

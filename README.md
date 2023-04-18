@@ -44,7 +44,7 @@ A custom label can be set with the `launcherIconLabel` property within a flavor:
 
 If a `webicon` file is provided via Gradle property, the 'web icon' (usually a PNG file in the app module directory) also gets a banner applied, or generated from the app's launcher icon if it does not exist.
 
-Note: In case of an adaptive launcher icon the foreground drawable has to have the same name with the postfix `_foreground`.
+Note: In case of an adaptive launcher icon the foreground drawable has to have the same name as the XML resource with the postfix `_foreground`.
 
 Supported icon formats: PNG, WebP, Vector (adaptive foreground only)
 
