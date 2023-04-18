@@ -37,7 +37,7 @@ class BuildPlugin implements Plugin<Project> {
 		// get android extension
 		AppExtension android = getAndroidExtension()
 
-		// BuildConfig fields
+		// launcherIconLabel default config
 		android.defaultConfig { ProductFlavor flavor ->
 			flavor.ext.set("launcherIconLabel", "")
 			flavor.ext.set("launcherIconLabelEnabled", (Boolean) null)

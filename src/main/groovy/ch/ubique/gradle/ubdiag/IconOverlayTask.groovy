@@ -111,8 +111,8 @@ class IconOverlayTask {
 				File modified = targetDir.listFiles({ File file -> file.name.matches("${originalBaseName}\\.[^.]+") } as FileFilter)?.find() as File
 				if (modified != null && original.lastModified() <= modified.lastModified() && gradleLastModified <= modified.lastModified()) return
 				println("$taskName: found modified launcher icon: " + original.absolutePath)
-				File target = new File("${generatedResDir.toString()}/${variant.flavorName}/$resTypeName/${original.name}")
-				target.parentFile.mkdirs()
+				File target = new File(targetDir, original.name)
+				targetDir.mkdirs()
 				Files.copy(original.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
 				IconUtils.createLayeredLabel(target, bannerLabel, true)
 			}
