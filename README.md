@@ -44,6 +44,10 @@ A custom label can be set with the `launcherIconLabel` property within a flavor:
 
 If a `webicon` file is provided via Gradle property, the 'web icon' (usually a PNG file in the app module directory) also gets a banner applied, or generated from the app's launcher icon if it does not exist.
 
+Note: In case of an adaptive launcher icon the foreground drawable has to have the same name as the XML resource with the postfix `_foreground`.
+
+Supported icon formats: PNG, WebP, Vector (adaptive foreground only)
+
 ## Usage
 
 To apply the Gradle build plugin, you have to add it as a project dependency in the top-level build.gradle:
@@ -72,15 +76,16 @@ Then apply the plugin in the app's module build.gradle:
 
 To test any changes locally, you can deploy a build to your local maven repository and include that from any application:
 
-1. Define a custom version by setting the mavenPublishing coordinates version in the `build.gradle` file.
-2. Deploy the plugin artifact by running `./gradlew publishToMavenLocal`
-3. Reference the local maven repository in your application's build script: 
+1. Define a custom version by setting the mavenPublishing `coordinates` version in the `build.gradle` file.
+2. You might need to disable `signAllPublications()`
+3. Deploy the plugin artifact by running `./gradlew publishToMavenLocal`
+4. Reference the local maven repository in your application's build script: 
 
         repositories {
             mavenLocal()
         }
 
-4. And apply the local plugin version:
+5. And apply the local plugin version:
 
         dependencies {
             classpath "ch.ubique.gradle:ubdiag-android:$yourLocalVersion"

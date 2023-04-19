@@ -5,6 +5,7 @@ import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.builder.model.ProductFlavor
+import groovy.io.FileType
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import org.gradle.api.Project
@@ -21,19 +22,14 @@ class IconOverlayTask {
 		String taskName = "overlayIcon${variant.name.capitalize()}"
 
 		return project.task(taskName).doFirst {
-			//empty generated icon res folder
-			File generatedResDir = new File("${project.buildDir}/generated/res/icon/")
+			File moduleDir = new File(project.rootDir, project.name)
 
-			JsonSlurper jsonSlurper = new JsonSlurper()
-			File timestampFile = new File(generatedResDir, "timestampFile")
-			Map<String, Object> timestampMap
+			long gradleLastModified = Math.max(
+					new File(moduleDir, "build.gradle").lastModified(),
+					new File(project.rootDir, "build.gradle").lastModified()
+			)
 
-			if (timestampFile.exists()) {
-				timestampMap = jsonSlurper.parse(timestampFile)
-			} else {
-				timestampMap = new LinkedHashMap<>()
-				generatedResDir.deleteDir()
-			}
+			File generatedResDir = new File("${project.buildDir}/generated/res/launcher-icon/")
 
 			// get banner label
 			ProductFlavor flavor = variant.productFlavors[0]
@@ -79,7 +75,6 @@ class IconOverlayTask {
 				targetWebIcon.delete()
 
 				// search for web icon source
-				File moduleDir = new File(project.rootDir, project.name)
 				File webIconSource = ((new File(moduleDir, "src/${variant.flavorName}").listFiles() ?: new File[0]) +
 						(new File(moduleDir, "src/main").listFiles() ?: new File[0]) +
 						(moduleDir.listFiles() ?: new File[0])).find {
@@ -109,53 +104,17 @@ class IconOverlayTask {
 				return
 			}
 
-			def updateTimestampJSON = false
-			List<String> touchedIcons = new ArrayList<>()
-
-			allIcons.each { File icon ->
-				String typeName = icon.parentFile.name
-
-				String key = "${variant.flavorName}-$typeName-${icon.name.substring(0, icon.name.indexOf("."))}"
-				touchedIcons.add(key)
-
-				Map savedObject = timestampMap.get(key)
-				if (savedObject != null) {
-					Long lastModified = (Long) savedObject.get("lastmodified")
-					if (icon.lastModified() == lastModified) return
-					return
-				}
-
-				println("$taskName: found modified icon: " + icon.absolutePath)
-
-				File copy = new File("${generatedResDir.toString()}/${variant.flavorName}/${variant.buildType.name}/$typeName/${icon.name}")
-				copy.parentFile.mkdirs()
-				Files.copy(icon.toPath(), copy.toPath(), StandardCopyOption.REPLACE_EXISTING)
-
-				IconUtils.doStuff(copy, bannerLabel)
-
-				savedObject = new LinkedHashMap<String, Object>()
-				savedObject.put("lastmodified", icon.lastModified())
-				savedObject.put("path", copy.absolutePath)
-				timestampMap.put(key, savedObject)
-				updateTimestampJSON = true
-			}
-
-			def iterator = timestampMap.entrySet().iterator()
-			while (iterator.hasNext()) {
-				def iconObj = iterator.next()
-				def key = iconObj.key
-				if (!touchedIcons.contains(key)) {
-					Map savedObject = iconObj.getValue()
-					File aFile = new File((String) savedObject.get("path"))
-					if (aFile.exists()) aFile.delete()
-
-					iterator.remove()
-					updateTimestampJSON = true
-				}
-			}
-
-			if (updateTimestampJSON) {
-				timestampFile.write(JsonOutput.toJson(timestampMap))
+			allIcons.each { File original ->
+				String resTypeName = original.parentFile.name
+				String originalBaseName = original.name.takeBefore(".")
+				File targetDir = new File("${generatedResDir.toString()}/${variant.flavorName}/${variant.buildType.name}/$resTypeName")
+				File modified = targetDir.listFiles({ File file -> file.name.matches("${originalBaseName}\\.[^.]+") } as FileFilter)?.find() as File
+				if (modified != null && original.lastModified() <= modified.lastModified() && gradleLastModified <= modified.lastModified()) return
+				println("$taskName: found modified launcher icon: " + original.absolutePath)
+				File target = new File(targetDir, original.name)
+				targetDir.mkdirs()
+				Files.copy(original.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
+				IconUtils.createLayeredLabel(target, bannerLabel, originalBaseName.endsWith("_foreground"))
 			}
 		}
 	}
