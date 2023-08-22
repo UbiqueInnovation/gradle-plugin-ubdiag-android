@@ -11,6 +11,7 @@ import groovy.json.JsonSlurper
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.tasks.TaskState
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
@@ -21,7 +22,7 @@ class IconOverlayTask {
 
 		String taskName = "overlayIcon${variant.name.capitalize()}"
 
-		return project.task(taskName).doFirst {
+		return project.register(taskName, {
 			File moduleDir = new File(project.rootDir, project.name)
 
 			long gradleLastModified = Math.max(
@@ -60,14 +61,14 @@ class IconOverlayTask {
 					.findAll { it != null }
 
 			List<File> resDirs = androidModules
-					.collect { [it.sourceSets.findByName(variant.flavorName), it.sourceSets.findByName("main")] }
+					.collect { [it.sourceSets.named(variant.flavorName).get(), it.sourceSets.named("main").get()] }
 					.flatten()
 					.findAll { it != null }
 					.collect { AndroidSourceSet ass -> ass.res.srcDirs }
 					.flatten()
 					.findAll { File file -> !file.path.contains("generated") }
 
-			println("$taskName: resource directories: " + resDirs)
+			//println("$taskName: resource directories: " + resDirs)
 
 			List<File> allIcons = IconUtils.findIcons(resDirs, manifestFile)
 
@@ -116,7 +117,7 @@ class IconOverlayTask {
 				Files.copy(original.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
 				IconUtils.createLayeredLabel(target, bannerLabel, originalBaseName.endsWith("_foreground"))
 			}
-		}
+		}).get()
 	}
 
 }

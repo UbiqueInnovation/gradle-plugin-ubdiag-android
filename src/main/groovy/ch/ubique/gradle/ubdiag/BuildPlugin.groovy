@@ -3,6 +3,7 @@ package ch.ubique.gradle.ubdiag
 import com.android.build.api.dsl.AndroidSourceDirectorySet
 import com.android.build.api.dsl.AndroidSourceSet
 import com.android.build.gradle.AppExtension
+import com.android.build.gradle.api.ApplicationVariant
 import com.android.builder.model.ProductFlavor
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -43,7 +44,7 @@ class BuildPlugin implements Plugin<Project> {
 			flavor.ext.set("launcherIconLabelEnabled", (Boolean) null)
 		}
 
-		android.productFlavors.whenObjectAdded { ProductFlavor flavor ->
+		android.productFlavors.configureEach { ProductFlavor flavor ->
 			// Add the property 'launcherIconLabel' to each product flavor and set the default value to its name
 			flavor.ext.set("launcherIconLabel", flavor.name)
 			flavor.ext.set("launcherIconLabelEnabled", (Boolean) null)
@@ -51,7 +52,7 @@ class BuildPlugin implements Plugin<Project> {
 			// Add generated icon path to res-SourceSet. This must be here otherwise it is too late!
 			AndroidSourceSet sourceSet = android.sourceSets.maybeCreate(flavor.name)
 			sourceSet.res { AndroidSourceDirectorySet res ->
-				android.buildTypes.all { buildType ->
+				android.buildTypes.configureEach { buildType ->
 					res.srcDir("${project.buildDir}/generated/res/launcher-icon/${flavor.name}/${buildType.name}/")
 				}
 			}
@@ -59,7 +60,7 @@ class BuildPlugin implements Plugin<Project> {
 
 		project.afterEvaluate {
 			// setup manifest manipulation task
-			android.applicationVariants.all { variant ->
+			android.applicationVariants.configureEach { ApplicationVariant variant ->
 				variant.outputs.each { output ->
 					output.processManifestProvider.get().doLast {
 						buildFlavor = variant.flavorName
@@ -72,14 +73,14 @@ class BuildPlugin implements Plugin<Project> {
 			}
 
 			// launcher icon manipulation task
-			android.applicationVariants.all { variant ->
+			android.applicationVariants.configureEach { ApplicationVariant variant ->
 				variant.outputs.each { output ->
 					def overlayIconTask = IconOverlayTask.create(project, android, variant, targetWebIcon)
 
 					/* hook overlayIconTask into android build chain */
 					def tasks = project.getTasks()
 					def targetName = variant.name.capitalize()
-					def targetTask = tasks.findByName("generate${targetName}Resources")
+					def targetTask = tasks.named("generate${targetName}Resources").get()
 
 					overlayIconTask.dependsOn output.processManifestProvider.get()
 					targetTask.dependsOn(overlayIconTask)
