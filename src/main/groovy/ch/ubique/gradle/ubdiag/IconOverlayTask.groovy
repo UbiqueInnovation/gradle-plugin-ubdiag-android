@@ -5,13 +5,9 @@ import com.android.build.gradle.AppExtension
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.api.ApplicationVariant
 import com.android.builder.model.ProductFlavor
-import groovy.io.FileType
-import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ProjectDependency
-
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
