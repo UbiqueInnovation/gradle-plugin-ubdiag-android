@@ -103,7 +103,7 @@ class IconOverlayTask {
 			allIcons.each { File original ->
 				String resTypeName = original.parentFile.name
 				String originalBaseName = original.name.takeBefore(".")
-				File targetDir = new File("${generatedResDir.toString()}/${variant.flavorName}/${variant.buildType.name}/$resTypeName")
+				File targetDir = new File("${generatedResDir.toString()}/${variant.flavorName}/$resTypeName")
 				File modified = targetDir.listFiles({ File file -> file.name.matches("${originalBaseName}\\.[^.]+") } as FileFilter)?.find() as File
 				if (modified != null && original.lastModified() <= modified.lastModified() && gradleLastModified <= modified.lastModified()) return
 				println("$taskName: found modified launcher icon: " + original.absolutePath)
