@@ -50,17 +50,11 @@ class BuildPlugin implements Plugin<Project> {
 			flavor.ext.set("launcherIconLabel", flavor.name)
 			flavor.ext.set("launcherIconLabelEnabled", (Boolean) null)
 
-			/*
-			 With AGP 8.2 this step is not needed and leads partially to "Error: Duplicate resources"
-
 			// Add generated icon path to res-SourceSet. This must be here otherwise it is too late!
 			AndroidSourceSet sourceSet = android.sourceSets.maybeCreate(flavor.name)
 			sourceSet.res { AndroidSourceDirectorySet res ->
-				android.buildTypes.configureEach { BuildType buildType ->
-					res.srcDir("${project.buildDir}/generated/res/launcher-icon/${flavor.name}/${buildType.name}/")
-				}
+				res.srcDir("${project.buildDir}/generated/res/launcher-icon/${flavor.name}/")
 			}
-			*/
 		}
 
 		project.afterEvaluate {
