@@ -9,6 +9,8 @@ import com.android.builder.model.ProductFlavor
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskProvider
 
 class BuildPlugin implements Plugin<Project> {
 
@@ -59,13 +61,15 @@ class BuildPlugin implements Plugin<Project> {
 
 		project.afterEvaluate {
 			// setup manifest manipulation task
-			android.applicationVariants.configureEach { ApplicationVariant variant ->
+			android.applicationVariants.configureEach { variant ->
 				variant.outputs.each { output ->
-					output.processManifestProvider.get().doLast {
-						buildFlavor = variant.flavorName
-						File manifestFile = ManifestUtils.getMergedManifestFile(project, variant)
-						if (manifestFile.exists()) {
-							manipulateManifestFile(manifestFile)
+					output.processManifestProvider.configure {
+						it.doLast {
+							buildFlavor = variant.flavorName
+							File manifestFile = ManifestUtils.getMergedManifestFile(project, variant)
+							if (manifestFile.exists()) {
+								manipulateManifestFile(manifestFile)
+							}
 						}
 					}
 				}
@@ -74,15 +78,14 @@ class BuildPlugin implements Plugin<Project> {
 			// launcher icon manipulation task
 			android.applicationVariants.configureEach { variant ->
 				variant.outputs.each { output ->
-					def overlayIconTask = IconOverlayTask.create(project, android, variant, targetWebIcon)
-
-					/* hook overlayIconTask into android build chain */
-					def tasks = project.getTasks()
-					def targetName = variant.name.capitalize()
-					def targetTask = tasks.findByName("generate${targetName}Resources")
-
-					overlayIconTask.dependsOn output.processManifestProvider.get()
-					targetTask.dependsOn(overlayIconTask)
+					TaskProvider<Task> overlayIconTask = IconOverlayTask.create(project, android, variant, targetWebIcon)
+					overlayIconTask.configure {
+						it.dependsOn(output.processManifestProvider)
+					}
+					def variantName = variant.name.capitalize()
+					project.tasks.named("generate${variantName}Resources") {
+						it.dependsOn(overlayIconTask)
+					}
 				}
 			}
 		}

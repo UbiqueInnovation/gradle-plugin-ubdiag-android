@@ -20,12 +20,12 @@ repositories {
 dependencies {
 	implementation localGroovy()
 	implementation gradleApi()
-	implementation 'com.android.tools.build:gradle:8.2.0'
+	implementation 'com.android.tools.build:gradle:8.3.2'
 }
 
 // MAVEN PUBLISHING
 mavenPublishing {
-	coordinates("ch.ubique.gradle", "ubdiag-android", "8.2.1")
+	coordinates("ch.ubique.gradle", "ubdiag-android", "8.3.0")
 	publishToMavenCentral(SonatypeHost.S01, true)
 	signAllPublications()
 }
