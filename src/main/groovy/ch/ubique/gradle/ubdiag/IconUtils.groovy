@@ -1,6 +1,7 @@
 package ch.ubique.gradle.ubdiag
 
 import groovy.io.FileType
+import groovy.xml.XmlSlurper
 
 import javax.imageio.ImageIO
 import java.awt.*
